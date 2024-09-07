@@ -21,6 +21,7 @@ from typing import Tuple
 
 from aqt import gui_hooks
 from aqt import mw
+from aqt.qt import QPushButton
 from aqt.qt import QCheckBox
 from aqt.qt import QDialog
 from aqt.qt import QDialogButtonBox
@@ -94,6 +95,20 @@ class VolumeDialog(QDialog):
         volume_group_box.setLayout(volume_layout)
         volume_group_box.setTitle('General')
 
+        # Create mute button with text
+        self.mute_button = QPushButton("Mute")
+        self.mute_button.setCheckable(True)  # Allow toggling
+        self.mute_button.clicked.connect(self._toggle_mute)
+
+        # Set a fixed width to maintain size
+        self.mute_button.setFixedWidth(75)  # Adjust the width as needed
+
+        # Store the previous volume to restore when unmuted
+        self._previous_volume = 50  # Default volume (you can adjust this)
+
+        # Add mute button to the volume layout
+        volume_layout.addWidget(self.mute_button)
+
         i_label, self.i_slider, self.i_spin_box = _create_config_widgets(
             'Integrated loudness', (-70, -5))
         self.dual_mono_check_box = QCheckBox(
@@ -164,3 +179,23 @@ class VolumeDialog(QDialog):
 
         save_config(volume_config)
         super().accept()
+
+    def _toggle_mute(self) -> None:
+        """Toggle mute and enable/disable volume controls."""
+        is_muted = self.mute_button.isChecked()
+
+        if is_muted:
+            # Mute: store the current volume and set to 0
+            self._previous_volume = self.volume_slider.value()
+            self.volume_slider.setValue(0)
+            self.volume_spin_box.setValue(0)
+            self.mute_button.setText("Unmute")
+        else:
+            # Unmute: restore the previous volume
+            self.volume_slider.setValue(self._previous_volume)
+            self.volume_spin_box.setValue(self._previous_volume)
+            self.mute_button.setText("Mute")
+
+        # Disable or enable the slider and spin box based on mute state
+        self.volume_slider.setEnabled(not is_muted)
+        self.volume_spin_box.setEnabled(not is_muted)
