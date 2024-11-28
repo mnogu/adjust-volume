@@ -17,29 +17,31 @@
 Defines the hook to set the sound volume.
 """
 
-from typing import Any
+if __name__ == "__main__":
+    pass
+else:
+    from typing import Any
 
-from aqt.sound import MpvManager
-from aqt.sound import SimpleMplayerSlaveModePlayer
+    from aqt.sound import MpvManager
+    from aqt.sound import SimpleMplayerSlaveModePlayer
 
-from anki.sound import AVTag
+    from anki.sound import AVTag
 
-from . import config
+    from . import config
 
 
 def did_begin_playing(player: Any, _: AVTag) -> None:
     """Set the sound volume."""
     volume_config = config.load_config()
+    actual_volume = 0 if volume_config.is_muted else volume_config.volume
+    
     if isinstance(player, SimpleMplayerSlaveModePlayer):
-        player.command('volume', volume_config.volume, '1')
+        player.command('volume', actual_volume, '1')
     elif isinstance(player, MpvManager):
-        player.set_property('volume', volume_config.volume)
-
-        # How can we retrieve the current value of the af property?
-        # "player.get_property('af')" always returns "[]"
+        player.set_property('volume', actual_volume)
+        
         if volume_config.loudnorm.enabled:
             i = volume_config.loudnorm.i
-            # True => true, False => false
             dual_mono = str(volume_config.loudnorm.dual_mono).lower()
             loudnorm_value = f'loudnorm=I={i}:dual_mono={dual_mono}'
         else:

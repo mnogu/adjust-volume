@@ -16,18 +16,23 @@
 """
 Handle the volume configurations
 """
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Any
-from typing import Dict
-from typing import Type
 
-from aqt import mw
+if __name__ == "__main__":
+    pass
+else:
+    from dataclasses import dataclass
+    from dataclasses import field
+    import sys
+    from typing import Any
+    from typing import Dict
+    from typing import Type
+
+    from aqt import mw
 
 
 @dataclass
 class LoudnormConfig:
-    """The loudnorm filter configuration"""
+    """Configuration for the loudnorm filter"""
     enabled: bool = False
     i: int = -24
     dual_mono: bool = False
@@ -35,8 +40,14 @@ class LoudnormConfig:
 
 @dataclass
 class VolumeConfig:
-    """The volume configuration"""
+    """Main volume configuration"""
     volume: int = 100
+    is_muted: bool = False
+    allow_volume_boost: bool = False
+    mute_shortcut: str = ""
+    settings_shortcut: str = ""
+    volume_up_shortcut: str = ""
+    volume_down_shortcut: str = ""
     loudnorm: LoudnormConfig = field(default_factory=LoudnormConfig)
 
 
@@ -61,6 +72,21 @@ def load_config() -> VolumeConfig:
     value = _load_value(config, 'volume', int)
     if value is not None:
         volume_config.volume = value
+
+    value = _load_value(config, 'is_muted', bool)
+    if value is not None:
+        volume_config.is_muted = value
+        
+    value = _load_value(config, 'allow_volume_boost', bool)
+    if value is not None:
+        volume_config.allow_volume_boost = value
+        
+    for shortcut_name in ['mute_shortcut', 'settings_shortcut', 'volume_up_shortcut', 'volume_down_shortcut']:
+        value = _load_value(config, shortcut_name, str)
+        if value is not None and value.strip():
+            setattr(volume_config, shortcut_name, value)
+        else:
+            setattr(volume_config, shortcut_name, "")
 
     if 'loudnorm' not in config:
         return volume_config

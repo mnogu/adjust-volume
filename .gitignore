@@ -131,3 +131,4 @@ dmypy.json
 # Anki
 /meta.json
 /*.ankiaddon
+.DS_Store
